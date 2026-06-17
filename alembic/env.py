@@ -19,7 +19,7 @@ if config.config_file_name is not None:
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 from backend.app.database import Base
-from backend.app.models import tenant, user, subscription_plan, subscription
+from backend.app.models import tenant, user, subscription_plan, subscription, invoice, line_item
 
 target_metadata = Base.metadata
 
