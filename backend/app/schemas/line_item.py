@@ -1,4 +1,3 @@
-from typing import Optional
 from pydantic import BaseModel
 from decimal import Decimal
 from datetime import datetime
