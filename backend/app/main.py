@@ -1,9 +1,11 @@
 from fastapi import FastAPI
 from .routers import auth, invoice
+from .models import tenant
 
 app = FastAPI(title="billing-api")
 app.include_router(auth.router)
 app.include_router(invoice.router)
+
 
 
 @app.get("/health")
