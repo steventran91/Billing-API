@@ -12,4 +12,5 @@ class SubscriptionPlan(Base):
     name: Mapped[str] = mapped_column(nullable=False)
     price: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(nullable=True)
+    billing_cycle: Mapped[int] = mapped_column(nullable=False)
     created_at: Mapped[datetime] = mapped_column(default=lambda: datetime.now(timezone.utc))

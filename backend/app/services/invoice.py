@@ -1,7 +1,11 @@
+from decimal import Decimal
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from ..models.invoice import Invoice
+from ..models.subscription import Subscription
+from ..models.subscription_plan import SubscriptionPlan
+from ..models.line_item import LineItem
 
 # get_invoices(db, tenant_id) returns all invoices for a tenant
 def get_invoices(db: Session, tenant_id: int) -> list[Invoice]:
@@ -36,4 +40,47 @@ def pay_invoice(db: Session, invoice_id: int, tenant_id: int) -> Invoice:
     db.commit()
     db.refresh(invoice)
     return invoice
+
+def create_invoice(subscription_id: int, db: Session) -> Invoice:
+    subscription = db.query(Subscription).filter(Subscription.id == subscription_id).first()
+    if not subscription:
+        raise ValueError(
+            "Subscription not found"
+        )
+    subscripion_plan = db.query(SubscriptionPlan).filter(SubscriptionPlan.id == subscription.subscription_plan_id).first()
+    if not subscripion_plan:
+        raise ValueError(
+            "Subscription plan not found"
+        )
+    
+    issued_at = datetime.now(timezone.utc)
+
+    invoice = Invoice(
+        tenant_id = subscription.tenant_id,
+        status = "unpaid",
+        total_amount = Decimal("0.00"),
+        issued_at = issued_at,
+        due_date = issued_at + timedelta(days=subscripion_plan.billing_cycle),
+        payment_date = None, 
+    )
+    db.add(invoice)
+    db.commit()
+    db.refresh(invoice)
+
+    line_item = LineItem(
+        amount = subscripion_plan.price,
+        description = subscripion_plan.name,
+        subscription_id = subscription.id,
+        invoice_id = invoice.id,
+    )
+    invoice.total_amount = line_item.amount
+    db.add(invoice)
+    db.commit()
+    db.refresh(invoice)
+    db.add(line_item)
+    db.commit()
+    db.refresh(line_item)
+
+    return invoice
+        
     
